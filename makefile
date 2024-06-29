@@ -1,9 +1,13 @@
 CC = g++
 CXXFLAGS = -std=c++17
+CXXTHREAD = -lpthread
 
-skiplist:
-	$(CC) ./src/* -o ./bin/main $(CXXFLAGS)
-	rm -f ./src/*.o
+kv_storage:
+	$(CC) ./src/server/*.cpp -o ./bin/kv_server $(CXXFLAGS) $(CXXTHREAD)
+	rm -f ./src/server/*.o
+	$(CC) ./src/client/*.cpp -o ./bin/kv_client $(CXXFLAGS) $(CXXTHREAD)
+	rm -f ./src/client/*.o
 
 clean:
-	rm -f ./*.o
+	rm -f ./src/server/*.o
+	rm -f ./src/client/*.o
