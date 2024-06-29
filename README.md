@@ -67,11 +67,9 @@
 **每秒可处理读请求数目：74.21w**
 
 ### 项目运行流程
-本项目使用C++11的random和thread等标准库进行随机数生成和线程构建和汇合等操作并进行压力测试，可以移植到多种操作系统下运行，下面以Linux环境为例：
 
-对kv存储引擎进行简单的数据测试
+开启多个终端后分别运行kv_server和kv_client, 可运行多个kv_client访问kv_server
 - Linux> make
-- Linux> ./bin/main
+- terminal_1> ./bin/kv_server
+- terminal_2> ./bin/kv_client
 
-运行start_stress_test.sh来测试kv存储引擎的性能
-- Linux> sh start_stress_test.sh
