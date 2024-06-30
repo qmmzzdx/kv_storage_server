@@ -106,7 +106,7 @@ namespace AsyncLog
         AsyncLog(const AsyncLog &) = delete;
         AsyncLog &operator=(const AsyncLog &) = delete;
 
-        AsyncLog() : running(true), fout("./doc/log.txt")
+        AsyncLog() : running(true), fout("./doc/log.txt", std::ios::out | std::ios::app)
         {
             log_thread = std::thread([this] {
                 for (;;)
