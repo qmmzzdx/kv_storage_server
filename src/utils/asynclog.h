@@ -23,8 +23,8 @@ namespace AsyncLog
     struct LogTask
     {
         LogTask() {}
-        LogTask(const LogTask &t) : log_level(t.log_level), qlog(t.qlog) {}
-        LogTask(const LogTask &&t) : log_level(t.log_level), qlog(std::move(t.qlog)) {}
+        LogTask(const LogTask& t) : log_level(t.log_level), qlog(t.qlog) {}
+        LogTask(const LogTask&& t) : log_level(t.log_level), qlog(std::move(t.qlog)) {}
         LogLevel log_level;
         std::queue<std::any> qlog;
     };
@@ -32,7 +32,7 @@ namespace AsyncLog
     class AsyncLog
     {
     public:
-        static AsyncLog &Instance()
+        static AsyncLog& Instance()
         {
             static AsyncLog instance;
             return instance;
@@ -41,13 +41,11 @@ namespace AsyncLog
         ~AsyncLog()
         {
             Close();
-            if (log_thread.joinable())
-            {
-                log_thread.join();
-            }
+            if (log_thread.joinable()) { log_thread.join(); }
             fout << "[INFO] [";
             RecordCurrentTime();
             fout << "]: Exit async logging......\n";
+            fout.close();
         }
 
         void Close()
@@ -57,13 +55,13 @@ namespace AsyncLog
         }
 
         template <typename Arg>
-        void PushTask(std::shared_ptr<LogTask> task, Arg &&arg)
+        void PushTask(std::shared_ptr<LogTask> task, Arg&& arg)
         {
             task->qlog.push(std::any(arg));
         }
 
         template <typename Arg, typename ...Args>
-        void PushTask(std::shared_ptr<LogTask> task, Arg &&arg, Args&& ...args)
+        void PushTask(std::shared_ptr<LogTask> task, Arg&& arg, Args&& ...args)
         {
             task->qlog.push(std::any(arg));
             PushTask(task, std::forward<Args>(args)...);
@@ -90,7 +88,7 @@ namespace AsyncLog
         {
             const auto now_time = std::chrono::system_clock::now();
             const std::time_t t = std::chrono::system_clock::to_time_t(now_time);
-            std::string &&curtime = std::string(std::ctime(&t));
+            std::string&& curtime = std::string(std::ctime(&t));
             curtime.pop_back();
             fout << curtime;
         }
@@ -103,16 +101,17 @@ namespace AsyncLog
         std::queue<std::shared_ptr<LogTask>> mq;
         std::condition_variable data_cond;
 
-        AsyncLog(const AsyncLog &) = delete;
-        AsyncLog &operator=(const AsyncLog &) = delete;
+        AsyncLog(const AsyncLog&) = delete;
+        AsyncLog& operator=(const AsyncLog&) = delete;
 
-        AsyncLog() : running(true), fout("./doc/log.txt", std::ios::app)
+        AsyncLog() : running(true)
         {
+            fout.open("./doc/log.txt", std::ios::app);
             log_thread = std::thread([this] {
                 for (;;)
                 {
                     std::unique_lock<std::mutex> lk(mtx);
-                    data_cond.wait(lk, [this]{ return !mq.empty() || !running; });
+                    data_cond.wait(lk, [this] { return !mq.empty() || !running; });
                     if (!running)
                     {
                         return;
@@ -125,7 +124,7 @@ namespace AsyncLog
             });
         }
 
-        bool AnyToStr(const std::any &val, std::string &str)
+        bool AnyToStr(const std::any& val, std::string& str)
         {
             std::ostringstream oss;
             if (val.type() == typeid(int))
@@ -144,13 +143,13 @@ namespace AsyncLog
             {
                 oss << std::any_cast<std::string>(val);
             }
-            else if (val.type() == typeid(char *))
+            else if (val.type() == typeid(char*))
             {
-                oss << std::any_cast<char *>(val);
+                oss << std::any_cast<char*>(val);
             }
-            else if (val.type() == typeid(const char *))
+            else if (val.type() == typeid(const char*))
             {
-                oss << std::any_cast<const char *>(val);
+                oss << std::any_cast<const char*>(val);
             }
             else
             {
@@ -161,12 +160,12 @@ namespace AsyncLog
         }
 
         template <typename ...Args>
-        std::string FormatString(const std::string &fstr, Args ...args)
+        std::string FormatString(const std::string& fstr, Args ...args)
         {
             size_t pos = 0;
             std::string res(fstr);
 
-            auto ReplaceString = [&](const std::string &spliter, const std::any &replacement)
+            auto ReplaceString = [&](const std::string& spliter, const std::any& replacement)
             {
                 std::string sre;
                 if (!AnyToStr(replacement, sre))
