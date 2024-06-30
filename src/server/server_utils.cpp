@@ -316,44 +316,71 @@ void do_request(std::vector<std::string>& cmd, std::string& out)
     if (cmd.size() == 1 && judge_cmd(cmd[0], "keys"))
     {
         do_keys(cmd, out);
+        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
+        strprint += "execute do_keys operation.\n";
+        AsyncLog::LOG_INFO(strprint);
         return;
     }
     else if (cmd.size() == 3 && judge_cmd(cmd[0], "get") && judge_cmd(cmd[1], "str"))
     {
         do_get(cmd, out);
+        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
+        strprint += "execute do_get operation.\n";
+        AsyncLog::LOG_INFO(strprint);
         return;
     }
     else if (cmd.size() == 4 && judge_cmd(cmd[0], "set") && judge_cmd(cmd[1], "str"))
     {
         do_set(cmd, out);
+        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
+        strprint += "execute do_set operation.\n";
+        AsyncLog::LOG_INFO(strprint);
         return;
     }
     else if (cmd.size() == 3 && judge_cmd(cmd[0], "del") && judge_cmd(cmd[1], "str"))
     {
         do_del(cmd, out);
+        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
+        strprint += "execute do_del operation.\n";
+        AsyncLog::LOG_INFO(strprint);
         return;
     }
     else if (cmd.size() == 4 && judge_cmd(cmd[0], "zadd") && judge_cmd(cmd[1], "zset"))
     {
         do_zadd(cmd, out);
+        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
+        strprint += "execute do_zadd operation.\n";
+        AsyncLog::LOG_INFO(strprint);
         return;
     }
     else if (cmd.size() == 3 && judge_cmd(cmd[0], "zrem") && judge_cmd(cmd[1], "zset"))
     {
         do_zrem(cmd, out);
+        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
+        strprint += "execute do_zrem operation.\n";
+        AsyncLog::LOG_INFO(strprint);
         return;
     }
     else if (cmd.size() == 3 && judge_cmd(cmd[0], "zscore") && judge_cmd(cmd[1], "zset"))
     {
         do_zscore(cmd, out);
+        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
+        strprint += "execute do_zscore operation.\n";
+        AsyncLog::LOG_INFO(strprint);
         return;
     }
     else if (cmd.size() == 2 && judge_cmd(cmd[0], "zcard") && judge_cmd(cmd[1], "zset"))
     {
         do_zcard(cmd, out);
+        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
+        strprint += "execute do_zcard operation.\n";
+        AsyncLog::LOG_INFO(strprint);
         return;
     }
     out_err(out, ERR_UNKNOWN, "Unknown cmd");
+    std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
+    strprint += "Unknown cmd.\n";
+    AsyncLog::LOG_WARN(strprint);
 }
 
 bool try_one_request(std::unique_ptr<ConnectionNode>& conn)
