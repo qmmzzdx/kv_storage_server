@@ -1,5 +1,4 @@
 #include "server_utils.h"
-#include "../utils/asynclog.h"
 
 int main(int argc, char* argv[])
 {
@@ -45,7 +44,6 @@ int main(int argc, char* argv[])
     }
     close(fd);
     close(epoll_fd);
-    AsyncLog::AsyncLog::Instance().Close();
 
     return 0;
 }
