@@ -40,18 +40,17 @@ namespace AsyncLog
 
         ~AsyncLog()
         {
-            Close();
             if (log_thread.joinable()) { log_thread.join(); }
-            fout << "[INFO] [";
-            RecordCurrentTime();
-            fout << "]: Exit async logging......\n";
-            fout.close();
         }
 
         void Close()
         {
             running = false;
             data_cond.notify_one();
+            fout << "[INFO] [";
+            RecordCurrentTime();
+            fout << "]: Exit async logging......\n";
+            fout.close();
         }
 
         template <typename Arg>
@@ -106,7 +105,7 @@ namespace AsyncLog
 
         AsyncLog() : running(true)
         {
-            fout.open("./doc/log.txt", std::ios::app);
+            fout.open("./doc/log.txt", std::ios::out | std::ios::app);
             log_thread = std::thread([this] {
                 for (;;)
                 {
