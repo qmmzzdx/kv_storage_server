@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     }
     close(fd);
     close(epoll_fd);
-    AsyncLog::Instance().Close();
+    AsyncLog::AsyncLog::Instance().Close();
 
     return 0;
 }
