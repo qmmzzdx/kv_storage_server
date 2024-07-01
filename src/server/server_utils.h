@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <cstdio>
 #include <cerrno>
+#include <csignal>
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
@@ -204,6 +205,8 @@ private:
     KvStroageData(const KvStroageData&) = delete;
     KvStroageData& operator=(const KvStroageData&) = delete;
 };
+
+void signal_handler(int signum);
 
 int Epoll_create1(int flags);
 
