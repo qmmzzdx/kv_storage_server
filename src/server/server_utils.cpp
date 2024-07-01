@@ -1,6 +1,12 @@
 #include "server_utils.h"
 #include "../utils/asynclog.h"
 
+void signal_handler(int signum)
+{
+    AsyncLog::LOG_INFO("Received signal " + std::to_string(signum) + ".");
+    AsyncLog::AsyncLog::Instance().Close();
+}
+
 int Epoll_create1(int flags)
 {
     int rc;
