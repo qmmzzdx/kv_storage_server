@@ -2,6 +2,8 @@
 
 int main(int argc, char* argv[])
 {
+    std::signal(SIGINT, signal_handler);
+    std::signal(SIGTERM, signal_handler);
     int fd = Open_listenfd("1234");
     std::vector<std::unique_ptr<ConnectionNode>> fd_to_connection;
 
