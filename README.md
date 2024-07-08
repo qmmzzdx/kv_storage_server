@@ -1,45 +1,70 @@
-### 高并发键值型存储引擎数据库服务器(README.md暂待补充)
-在常用的Redis、LevelDB等键值存储数据库中，实现其核心存储引擎的数据结构其中之一就是跳表
+### 高并发键值型存储引擎数据库服务器/客户端
+在常用的Redis键值存储数据库中，实现其核心存储引擎的数据结构包含字符串、哈希表、列表、集合以及有序集合
 
-本项目采用C++语言基于跳表实现的轻量级键值型存储引擎，实现了数据展示、数据添加、数据查询、数据删除、数据存储以及数据加载功能，并采用异步日志系统打印信息
+本项目采用C/C++语言基于Linux内核的高效I/O事件通信机制epoll以及哈希表和跳表实现的高并发键值型存储引擎数据库服务器/客户端模型，实现了并发场景下键值数据库的基本功能，包含keys、get、set、del、zadd、zrem、zscore和zcard命令，实现了高扩展性，并采用异步日志系统打印信息
 
-在随机读写情况下，本项目每秒可处理写请求数目为15.22w，每秒可处理读请求数目为74.21w
+项目设计中的命令是一个字符串列表，如set key val，使用以下方案对命令进行编码
+```
++------+-----+------+-----+------+-----+-----+------+
+| nstr | len | str1 | len | str2 | ... | len | strn |
++------+-----+------+-----+------+-----+-----+------+
+```
+nstr是字符串的数量，len是后续字符串的长度，都是32位整数，str是可变长度的字符串请求
+```
++-----+---------+
+| res | data... |
++-----+---------+
+```
+响应res是一个32位状态码，data表示返回的响应字符串
+
+### 项目运行流程
+开启多个终端后分别运行kv_server和kv_client, 可运行多个kv_client来访问kv_server
+- Linux> make
+- Terminal1> ./bin/kv_server
+- Terminal2> ./bin/kv_client
 
 ### 项目文件功能
 - bin 生成可执行文件目录
 - doc/log.txt 后台日志信息文件
-- src/asynclog.h 使用C++可变参数模板实现的异步日志打印系统
-- src/main.cpp 使用skiplist.h的跳表数据结构进行简单的数据测试
-- src/skiplist.h 跳表数据结构的核心实现
-- test/stress_test.cpp 压力测试代码
+- src/client 数据库客户端模型代码
+- src/server 数据库服务器模型代码
+- src/utils/asynclog.h 使用C++可变参数模板实现的异步日志打印系统
+- src/utils/kv_constant.h 包含服务器和客户端的通用常量
 - README.md 项目简介和描述
 - makefile make编译脚本
-- start_stress_test.sh 压力测试脚本
 
-### 项目接口实现
-- 数据展示：DisplaySkipList
-- 数据添加：InsertElement
-- 数据查询：SearchElement
-- 数据删除：DeleteElement
-- 数据存储：StoreFile
-- 数据加载：LoadFile
+### 项目功能实现
+- keys: 显示当前KV数据库中的所有键
+> 使用方式: keys
+- get: 获取当前str的key中对应的value
+> 使用方式: get str key
+- set: 添加str的key以及对应的value
+> 使用方式: set str key value
+- del: 删除当前str的key以及对应的value
+> 使用方式: del str key
+- zadd: 添加zset的score以及对应的name
+> 使用方式: zadd zset score name
+- zrem: 删除zset的score以及对应的name
+> 使用方式: zrem zset name
+- zscore: 获取zset的name对应的score
+> 使用方式: zscore zset name
+- zcard: 获取zset的当前元素总数
+> 使用方式: zcard zset
 
 ### 项目相关技术
 - 一、使用线程锁和条件变量的生产者-消费者模型进行异步日志系统后台分离打印日志，减少日志打印占用率
 
-- 二、使用template模板抽象出key-value键值对的数据类型，提高泛化性
+- 二、使用shared_ptr智能指针和RAII技术替代原生指针进行内存管理，降低内存泄露几率
 
-- 三、使用shared_ptr智能指针替代原生指针对跳表进行内存管理，防止内存泄露
+- 三、使用响应状态机进行非阻塞读写I/O状态的转换，并判断errno错误码进行循环读写，防止读写中断或异常
 
-- 四、使用shared_lock和lock_guard来管理读写锁shared_mutex，采用读者-写者模型进行线程间的同步，降低时间损耗
-
-- 五、使用random库的伯努利二项分布随机数算法，基于一定的概率因子p(redis中取值为0.25)，从跳表中确定新节点要添加的层数
+- 四、使用random库的伯努利二项分布随机数算法，基于一定的概率因子p(redis中取值为0.25)，从跳表中确定新节点要添加的层数
 > 1. 新节点至少会出现在第一层，也就是从第一层开始抛硬币
 > 2. 对于每一层，可以抽象成在做一个抛硬币的实验，如果硬币正面朝上(这个事件发生的概率为p)，新节点的层数就会增加1
 > 3. 重复这个随机过程直到硬币背面朝上为止(这个事件发生的概率为1 - p)，此时抛硬币过程结束，计算完成
 > 4. SkipList通常有一个预设的最大层数max_level，节点的层数不会超过这个值，若抛硬币一直抛到第max_level层还是正面朝上，此时也不会增加层数
 
-### 存储引擎数据表现
+### KV存储引擎跳表SkipList测试表现
 **SkipList层数高度：18**
 
 **测试CPU：i5-12500H**
@@ -65,11 +90,3 @@
 |100w | 1.560527 |
 
 **每秒可处理读请求数目：74.21w**
-
-### 项目运行流程
-
-开启多个终端后分别运行kv_server和kv_client, 可运行多个kv_client访问kv_server
-- Linux> make
-- terminal_1> ./bin/kv_server
-- terminal_2> ./bin/kv_client
-
