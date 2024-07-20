@@ -230,7 +230,7 @@ namespace AsyncLog
                 fstr = FormatString(fstr, val);
                 task->qlog.pop();
             }
-            fout << fstr << std::flush;
+            fout << fstr;
         }
     };
 
