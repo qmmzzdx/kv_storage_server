@@ -49,7 +49,7 @@ namespace AsyncLog
             data_cond.notify_one();
             fout << "[INFO] [";
             RecordCurrentTime();
-            fout << "]: Exit async logging......\n";
+            fout << "]: Exit async logging......\n" << std::flush;
             fout.close();
         }
 
