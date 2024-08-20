@@ -58,7 +58,7 @@ int open_clientfd(const char* hostname, const char* port)
         if (connect(clientfd, p->ai_addr, p->ai_addrlen) != -1) { break; }
         if (close(clientfd) < 0)
         {
-            fprintf(stderr, "close fd %s failed.\n", strerror(errno));
+            fprintf(stderr, "close error: %s.\n", strerror(errno));
             return -1;
         }
     }
