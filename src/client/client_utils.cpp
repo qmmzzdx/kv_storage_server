@@ -1,5 +1,4 @@
 #include "client_utils.h"
-#include "../utils/asynclog.h"
 
 ssize_t read_full(int fd, char* usrbuf, size_t n)
 {
@@ -50,10 +49,7 @@ int open_clientfd(const char* hostname, const char* port)
     hints.ai_flags = AI_NUMERICSERV | AI_ADDRCONFIG;
     if ((rc = getaddrinfo(hostname, port, &hints, &listp)) != 0)
     {
-        fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "getaddrinfo failed (" + std::string(hostname) + ":" + std::string(port) + ").\n";
-        AsyncLog::LOG_ERROR(strprint);
+        fprintf(stderr, "getaddrinfo() failed.\n");
         return -2;
     }
     for (p = listp; p; p = p->ai_next)
@@ -62,10 +58,7 @@ int open_clientfd(const char* hostname, const char* port)
         if (connect(clientfd, p->ai_addr, p->ai_addrlen) != -1) { break; }
         if (close(clientfd) < 0)
         {
-            fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-            std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-            strprint += "open_clientfd: close fd " + std::string(strerror(errno)) + " failed.\n";
-            AsyncLog::LOG_ERROR(strprint);
+            fprintf(stderr, "close fd %s failed.\n", strerror(errno));
             return -1;
         }
     }
@@ -79,10 +72,7 @@ int Open_clientfd(const char* hostname, const char* port)
 
     if ((rc = open_clientfd(hostname, port)) < 0)
     {
-        fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "Open_clientfd error: " + std::to_string(errno) + ".\n";
-        AsyncLog::LOG_ERROR(strprint);
+        fprintf(stderr, "Open_clientfd error: %s.\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
     return rc;
