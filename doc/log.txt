@@ -15,4 +15,5 @@
 [INFO] [Mon Sep 16 18:12:47 2024]: In file ./src/server/server_utils.cpp function(do_request) Line 352, execute do_del operation.
 [INFO] [Mon Sep 16 18:12:48 2024]: In file ./src/server/server_utils.cpp function(do_request) Line 334, execute do_keys operation.
 [WARN] [Mon Sep 16 18:12:50 2024]: In file ./src/server/server_utils.cpp function(try_fill_buffer) Line 451, read() EOF from client 5.
-[INFO] [Mon Sep 16 18:12:57 2024]: Received signal 2.[INFO] [Mon Sep 16 18:12:57 2024]: Exit async logging......
+[INFO] [Mon Sep 16 18:12:57 2024]: Received signal 2.
+[INFO] [Mon Sep 16 18:12:57 2024]: Exit async logging......
