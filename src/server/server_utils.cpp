@@ -2,7 +2,7 @@
 
 void signal_handler(int signum)
 {
-    AsyncLog::LOG_INFO("Received signal " + std::to_string(signum) + ".");
+    AsyncLog::LOG_INFO("Received signal " + std::to_string(signum) + ".\n");
     AsyncLog::AsyncLog::Instance().Close();
 }
 
