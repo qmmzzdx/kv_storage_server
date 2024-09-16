@@ -24,6 +24,7 @@
 #include <sys/epoll.h>
 #include <netinet/ip.h>
 #include <netinet/in.h>
+#include "../utils/asynclog.h"
 #include "../utils/kv_constant.h"
 
 struct ConnectionNode
@@ -207,6 +208,8 @@ private:
 };
 
 void signal_handler(int signum);
+
+void format_asynclog_write(const char* file_name, const char* func_name, int cur_line, const char* log_mes, AsyncLog::LogLevel level);
 
 int Epoll_create1(int flags);
 

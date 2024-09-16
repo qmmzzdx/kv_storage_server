@@ -1,10 +1,38 @@
 #include "server_utils.h"
-#include "../utils/asynclog.h"
 
 void signal_handler(int signum)
 {
     AsyncLog::LOG_INFO("Received signal " + std::to_string(signum) + ".");
     AsyncLog::AsyncLog::Instance().Close();
+}
+
+void format_asynclog_write(const char* file_name, const char* func_name, int cur_line, const char* log_mes, AsyncLog::LogLevel level)
+{
+    std::string strprint = "In file " + std::string(file_name) + " function(" + std::string(func_name) + ")";
+    strprint += " Line " + std::to_string(cur_line) + ", " + std::string(log_mes);
+    switch (level)
+    {
+        case AsyncLog::LogLevel::DEBUG:
+        {
+            AsyncLog::LOG_DEBUG(strprint);
+            break;
+        }
+        case AsyncLog::LogLevel::INFO:
+        {
+            AsyncLog::LOG_INFO(strprint);
+            break;
+        }
+        case AsyncLog::LogLevel::WARN:
+        {
+            AsyncLog::LOG_WARN(strprint);
+            break;
+        }
+        case AsyncLog::LogLevel::ERROR:
+        {
+            AsyncLog::LOG_ERROR(strprint + std::to_string(errno) + ".\n");
+            break;
+        }
+    }
 }
 
 int Epoll_create1(int flags)
@@ -14,9 +42,7 @@ int Epoll_create1(int flags)
     if ((rc = epoll_create1(flags)) < 0)
     {
         fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "epoll_create1() error: " + std::to_string(errno) + ".\n";
-        AsyncLog::LOG_ERROR(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "epoll_create1() error: ", AsyncLog::LogLevel::ERROR);
         exit(EXIT_FAILURE);
     }
     return rc;
@@ -29,9 +55,7 @@ void Epoll_ctl(int epfd, int op, int fd, struct epoll_event* event)
     if ((rc = epoll_ctl(epfd, op, fd, event)) < 0)
     {
         fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "epoll_ctl() error: " + std::to_string(errno) + ".\n";
-        AsyncLog::LOG_ERROR(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "epoll_ctl() error: ", AsyncLog::LogLevel::ERROR);
         exit(EXIT_FAILURE);
     }
 }
@@ -43,9 +67,7 @@ int Epoll_wait(int epfd, struct epoll_event* events, int maxevents, int timeout)
     if ((rc = epoll_wait(epfd, events, maxevents, timeout)) < 0)
     {
         fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "epoll_wait() error: " + std::to_string(errno) + ".\n";
-        AsyncLog::LOG_ERROR(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "epoll_wait() error: ", AsyncLog::LogLevel::ERROR);
         exit(EXIT_FAILURE);
     }
     return rc;
@@ -64,9 +86,7 @@ int open_listenfd(const char* port)
     if ((rc = getaddrinfo(NULL, port, &hints, &listp)) != 0)
     {
         fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "getaddrinfo failed (port " + std::string(port) + ").\n";
-        AsyncLog::LOG_ERROR(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "open_listenfd getaddrinfo() error: ", AsyncLog::LogLevel::ERROR);
         return -2;
     }
     for (p = listp; p; p = p->ai_next)
@@ -77,9 +97,7 @@ int open_listenfd(const char* port)
         if (close(listenfd) < 0)
         {
             fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-            std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-            strprint += "open_listenfd close failed: " + std::string(strerror(errno)) + ".\n";
-            AsyncLog::LOG_ERROR(strprint);
+            format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "open_listenfd close() error: ", AsyncLog::LogLevel::ERROR);
             return -1;
         }
     }
@@ -103,9 +121,7 @@ int Open_listenfd(const char* port)
     if ((rc = open_listenfd(port)) < 0)
     {
         fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "Open_listenfd error: " + std::to_string(errno) + ".\n";
-        AsyncLog::LOG_ERROR(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "open_listenfd() error: ", AsyncLog::LogLevel::ERROR);
         exit(EXIT_FAILURE);
     }
     return rc;
@@ -118,9 +134,7 @@ int Accept(int fd, struct sockaddr* addr, socklen_t* addrlen)
     if ((rc = accept(fd, addr, addrlen)) < 0)
     {
         fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "Accept error: " + std::to_string(errno) + ".\n";
-        AsyncLog::LOG_ERROR(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "accept() error: ", AsyncLog::LogLevel::ERROR);
         exit(EXIT_FAILURE);
     }
     return rc;
@@ -132,18 +146,14 @@ void fd_set_nb(int fd)
     if (flags == -1)
     {
         fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "fcntl error: " + std::to_string(errno) + ".\n";
-        AsyncLog::LOG_ERROR(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 4, "fcntl() error: ", AsyncLog::LogLevel::ERROR);
         exit(EXIT_FAILURE);
     }
     flags |= O_NONBLOCK;
     if (fcntl(fd, F_SETFL, flags) == -1)
     {
         fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "fcntl error: " + std::to_string(errno) + ".\n";
-        AsyncLog::LOG_ERROR(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "fcntl() error: ", AsyncLog::LogLevel::ERROR);
         exit(EXIT_FAILURE);
     }
 }
@@ -322,71 +332,53 @@ void do_request(std::vector<std::string>& cmd, std::string& out)
     if (cmd.size() == 1 && judge_cmd(cmd[0], "keys"))
     {
         do_keys(cmd, out);
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
-        strprint += "execute do_keys operation.\n";
-        AsyncLog::LOG_INFO(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 1, "execute do_keys operation.\n", AsyncLog::LogLevel::INFO);
         return;
     }
     else if (cmd.size() == 3 && judge_cmd(cmd[0], "get") && judge_cmd(cmd[1], "str"))
     {
         do_get(cmd, out);
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
-        strprint += "execute do_get operation.\n";
-        AsyncLog::LOG_INFO(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 1, "execute do_get operation.\n", AsyncLog::LogLevel::INFO);
         return;
     }
     else if (cmd.size() == 4 && judge_cmd(cmd[0], "set") && judge_cmd(cmd[1], "str"))
     {
         do_set(cmd, out);
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
-        strprint += "execute do_set operation.\n";
-        AsyncLog::LOG_INFO(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 1, "execute do_set operation.\n", AsyncLog::LogLevel::INFO);
         return;
     }
     else if (cmd.size() == 3 && judge_cmd(cmd[0], "del") && judge_cmd(cmd[1], "str"))
     {
         do_del(cmd, out);
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
-        strprint += "execute do_del operation.\n";
-        AsyncLog::LOG_INFO(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 1, "execute do_del operation.\n", AsyncLog::LogLevel::INFO);
         return;
     }
     else if (cmd.size() == 4 && judge_cmd(cmd[0], "zadd") && judge_cmd(cmd[1], "zset"))
     {
         do_zadd(cmd, out);
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
-        strprint += "execute do_zadd operation.\n";
-        AsyncLog::LOG_INFO(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 1, "execute do_zadd operation.\n", AsyncLog::LogLevel::INFO);
         return;
     }
     else if (cmd.size() == 3 && judge_cmd(cmd[0], "zrem") && judge_cmd(cmd[1], "zset"))
     {
         do_zrem(cmd, out);
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
-        strprint += "execute do_zrem operation.\n";
-        AsyncLog::LOG_INFO(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 1, "execute do_zrem operation.\n", AsyncLog::LogLevel::INFO);
         return;
     }
     else if (cmd.size() == 3 && judge_cmd(cmd[0], "zscore") && judge_cmd(cmd[1], "zset"))
     {
         do_zscore(cmd, out);
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
-        strprint += "execute do_zscore operation.\n";
-        AsyncLog::LOG_INFO(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 1, "execute do_zscore operation.\n", AsyncLog::LogLevel::INFO);
         return;
     }
     else if (cmd.size() == 2 && judge_cmd(cmd[0], "zcard") && judge_cmd(cmd[1], "zset"))
     {
         do_zcard(cmd, out);
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
-        strprint += "execute do_zcard operation.\n";
-        AsyncLog::LOG_INFO(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 1, "execute do_zcard operation.\n", AsyncLog::LogLevel::INFO);
         return;
     }
     out_err(out, ERR_UNKNOWN, "Unknown cmd");
-    std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 1) + ", ";
-    strprint += "Unknown cmd.\n";
-    AsyncLog::LOG_WARN(strprint);
+    format_asynclog_write(__FILE__, __func__, __LINE__ - 1, "Unknown cmd.\n", AsyncLog::LogLevel::WARN);
 }
 
 bool try_one_request(std::unique_ptr<ConnectionNode>& conn)
@@ -397,9 +389,7 @@ bool try_one_request(std::unique_ptr<ConnectionNode>& conn)
     if (len > MAX_MSG)
     {
         fprintf(stderr, "command is too long.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "command is too long.\n";
-        AsyncLog::LOG_WARN(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "command is too long.\n", AsyncLog::LogLevel::WARN);
         conn->state = STATE_END;
         return false;
     }
@@ -409,9 +399,7 @@ bool try_one_request(std::unique_ptr<ConnectionNode>& conn)
     if (parse_request(&conn->rbuf[4], len, cmd) < 0)
     {
         fprintf(stderr, "bad request.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "bad request.\n";
-        AsyncLog::LOG_WARN(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "bad request.\n", AsyncLog::LogLevel::WARN);
         conn->state = STATE_END;
         return false;
     }
@@ -442,9 +430,7 @@ bool try_fill_buffer(std::unique_ptr<ConnectionNode>& conn)
     if (conn->rbuf_size >= sizeof(conn->rbuf))
     {
         fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "read() error: " + std::to_string(errno) + ".\n";
-        AsyncLog::LOG_ERROR(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "read() error: ", AsyncLog::LogLevel::ERROR);
         exit(EXIT_FAILURE);
     }
     ssize_t bytes_read = 0;
@@ -457,18 +443,15 @@ bool try_fill_buffer(std::unique_ptr<ConnectionNode>& conn)
     {
         if (errno == EAGAIN) { return false; }
         fprintf(stderr, "read() error.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 4) + ", ";
-        strprint += "read() error.\n";
-        AsyncLog::LOG_WARN(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 4, "read() error: ", AsyncLog::LogLevel::ERROR);
         conn->state = STATE_END;
         return false;
     }
     if (bytes_read == 0)
     {
         fprintf(stderr, "read() %s from client %d.\n", conn->rbuf_size > 0 ? "unexpected EOF" : "EOF", conn->fd);
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "read() " + std::string(conn->rbuf_size > 0 ? "unexpected EOF" : "EOF") + " from client " + std::to_string(conn->fd) + ".\n";
-        AsyncLog::LOG_WARN(strprint);
+        std::string log_message = "read() " + std::string(conn->rbuf_size > 0 ? "unexpected EOF" : "EOF") + " from client " + std::to_string(conn->fd) + ".\n";
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, log_message.c_str(), AsyncLog::LogLevel::WARN);
         conn->state = STATE_END;
         return false;
     }
@@ -476,9 +459,7 @@ bool try_fill_buffer(std::unique_ptr<ConnectionNode>& conn)
     if (conn->rbuf_size > sizeof(conn->rbuf))
     {
         fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "read() error: " + std::to_string(errno) + ".\n";
-        AsyncLog::LOG_ERROR(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "read() error: ", AsyncLog::LogLevel::ERROR);
         exit(EXIT_FAILURE);
     }
     while (try_one_request(conn)) { continue; }
@@ -497,9 +478,7 @@ bool try_flush_buffer(std::unique_ptr<ConnectionNode>& conn)
     {
         if (errno == EAGAIN) { return false; }
         fprintf(stderr, "write() error.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 4) + ", ";
-        strprint += "write() error.\n";
-        AsyncLog::LOG_WARN(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 4, "write() error: ", AsyncLog::LogLevel::ERROR);
         conn->state = STATE_END;
         return false;
     }
@@ -507,9 +486,7 @@ bool try_flush_buffer(std::unique_ptr<ConnectionNode>& conn)
     if (conn->wbuf_sent > conn->wbuf_size)
     {
         fprintf(stderr, "KV storage failed, please check the backend logs.\n");
-        std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-        strprint += "write() error: " + std::to_string(errno) + ".\n";
-        AsyncLog::LOG_ERROR(strprint);
+        format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "write() error: ", AsyncLog::LogLevel::ERROR);
         exit(EXIT_FAILURE);
     }
     if (conn->wbuf_sent == conn->wbuf_size)
@@ -549,17 +526,13 @@ void connection_io(std::unique_ptr<ConnectionNode>& conn)
         case STATE_END:
         {
             fprintf(stderr, "end to read and write.\n");
-            std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-            strprint += "end to read and write.\n";
-            AsyncLog::LOG_INFO(strprint);
+            format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "end to read and write.\n", AsyncLog::LogLevel::INFO);
             break;
         }
         default:
         {
             fprintf(stderr, "unexpected state.\n");
-            std::string strprint = "In file " + std::string(__FILE__) + " function(" + std::string(__func__) + ")" + " Line " + std::to_string(__LINE__ - 3) + ", ";
-            strprint += "unexpected state.\n";
-            AsyncLog::LOG_WARN(strprint);
+            format_asynclog_write(__FILE__, __func__, __LINE__ - 3, "unexpected state.\n", AsyncLog::LogLevel::WARN);
             break;
         }
     }
