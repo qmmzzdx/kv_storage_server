@@ -6,6 +6,9 @@
 #include "../src/utils/kv_constant.h"
 #include "../src/server/server_utils.h"
 
+/**
+ * @brief 测试跳表性能
+ */
 void test_skip_list_performance()
 {
     std::cout << "Testing SkipList performance..." << std::endl;
@@ -15,7 +18,7 @@ void test_skip_list_performance()
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    // Insert performance
+    // 插入性能测试
     for (int i = 0; i < OPERATIONS; i++)
     {
         list.insert(i, "value" + std::to_string(i));
@@ -23,7 +26,7 @@ void test_skip_list_performance()
 
     auto insert_end = std::chrono::high_resolution_clock::now();
 
-    // Search performance
+    // 搜索性能测试
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dist(0, OPERATIONS - 1);
@@ -35,6 +38,7 @@ void test_skip_list_performance()
 
     auto search_end = std::chrono::high_resolution_clock::now();
 
+    // 计算耗时和吞吐量
     auto insert_duration = std::chrono::duration_cast<std::chrono::milliseconds>(insert_end - start);
     auto search_duration = std::chrono::duration_cast<std::chrono::milliseconds>(search_end - insert_end);
 
@@ -43,37 +47,41 @@ void test_skip_list_performance()
     std::cout << "  Search " << OPERATIONS << " elements: " << search_duration.count() << " ms" << std::endl;
     std::cout << "  Insert throughput: " << (OPERATIONS * 1000.0 / insert_duration.count()) << " ops/sec" << std::endl;
     std::cout << "  Search throughput: " << (OPERATIONS * 1000.0 / search_duration.count()) << " ops/sec" << std::endl;
+    std::cout << "  Final size: " << list.size() << " elements" << std::endl;
 }
 
+/**
+ * @brief 测试KV存储性能
+ */
 void test_kv_storage_performance()
 {
     std::cout << "Testing KV Storage performance..." << std::endl;
 
-    auto& storage = KvStroageData::Instance();
-    const int OPERATIONS = 5000;
+    const int OPERATIONS = 1000;
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    // Set performance
+    // Set 操作性能测试
     for (int i = 0; i < OPERATIONS; i++)
     {
-        std::vector<std::string> cmd = {"set", "str", "key" + std::to_string(i), "value" + std::to_string(i)};
+        std::vector<std::string> cmd = {"set", "str", "perf_key" + std::to_string(i), "perf_value" + std::to_string(i)};
         std::string out;
         do_request(cmd, out);
     }
 
     auto set_end = std::chrono::high_resolution_clock::now();
 
-    // Get performance
+    // Get 操作性能测试
     for (int i = 0; i < OPERATIONS; i++)
     {
-        std::vector<std::string> cmd = {"get", "str", "key" + std::to_string(i)};
+        std::vector<std::string> cmd = {"get", "str", "perf_key" + std::to_string(i)};
         std::string out;
         do_request(cmd, out);
     }
 
     auto get_end = std::chrono::high_resolution_clock::now();
 
+    // 计算耗时和吞吐量
     auto set_duration = std::chrono::duration_cast<std::chrono::milliseconds>(set_end - start);
     auto get_duration = std::chrono::duration_cast<std::chrono::milliseconds>(get_end - set_end);
 
@@ -84,6 +92,9 @@ void test_kv_storage_performance()
     std::cout << "  Get throughput: " << (OPERATIONS * 1000.0 / get_duration.count()) << " ops/sec" << std::endl;
 }
 
+/**
+ * @brief 主测试函数
+ */
 int main()
 {
     std::cout << "Starting performance tests..." << std::endl;
@@ -92,5 +103,9 @@ int main()
     test_kv_storage_performance();
 
     std::cout << "All performance tests completed!" << std::endl;
+
+    // 关闭日志系统以确保程序正常退出
+    AsyncLog::AsyncLog::Instance().Close();
+
     return 0;
 }

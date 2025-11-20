@@ -9,16 +9,16 @@ kv_storage:
 
 # 测试目标
 test_skip_list:
-	$(CC) ./tests/test_skip_list.cpp ./src/server/*.cpp -o ./bin/test_skip_list $(CXXFLAGS) $(CXXTHREAD) -Isrc
+	$(CC) ./tests/test_skip_list.cpp ./src/server/server_utils.cpp -o ./bin/test_skip_list $(CXXFLAGS) $(CXXTHREAD) -Isrc
 
 test_kv_storage:
-	$(CC) ./tests/test_kv_storage.cpp ./src/server/*.cpp -o ./bin/test_kv_storage $(CXXFLAGS) $(CXXTHREAD) -Isrc
+	$(CC) ./tests/test_kv_storage.cpp ./src/server/server_utils.cpp -o ./bin/test_kv_storage $(CXXFLAGS) $(CXXTHREAD) -Isrc
 
 test_network:
-	$(CC) ./tests/test_network.cpp ./src/client/*.cpp ./src/server/*.cpp -o ./bin/test_network $(CXXFLAGS) $(CXXTHREAD) -Isrc
+	$(CC) ./tests/test_network.cpp ./src/client/client_utils.cpp ./src/server/server_utils.cpp -o ./bin/test_network $(CXXFLAGS) $(CXXTHREAD) -Isrc
 
 test_performance:
-	$(CC) ./tests/performance_test.cpp ./src/server/*.cpp -o ./bin/test_performance $(CXXFLAGS) $(CXXTHREAD) -Isrc
+	$(CC) ./tests/performance_test.cpp ./src/server/server_utils.cpp -o ./bin/test_performance $(CXXFLAGS) $(CXXTHREAD) -Isrc
 
 # 运行所有测试
 test: test_skip_list test_kv_storage test_network test_performance
