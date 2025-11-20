@@ -16,17 +16,20 @@ void test_serialization()
     // 测试基本命令序列化
     std::vector<std::string> cmd = {"set", "str", "key", "value"};
 
-    // 计算预期长度：nstr(4) + 3个字符串的(len+str)
+    // 计算预期长度：nstr(4) + 每个字符串的(len+str)
     uint32_t expected_len = 4; // nstr 占4字节
     for (const auto& s : cmd)
     {
         expected_len += 4 + static_cast<uint32_t>(s.size()); // 每个字符串：len(4) + str_data
     }
 
-    // 验证长度计算正确
-    assert(expected_len == (4 + 4 + 3 + 4 + 3 + 4 + 5 + 4 + 5));
+    // 计算验证：nstr(4) + "set"(4+3) + "str"(4+3) + "key"(4+3) + "value"(4+5) = 4 + 7 + 7 + 7 + 9 = 34
+    uint32_t manual_calc = 4 + (4 + 3) + (4 + 3) + (4 + 3) + (4 + 5);
 
-    std::cout << "Serialization test passed!" << std::endl;
+    // 验证计算逻辑正确
+    assert(expected_len == manual_calc);
+
+    std::cout << "Serialization test passed! Expected length: " << expected_len << std::endl;
 }
 
 /**
